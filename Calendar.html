@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2024 Philippines Calendar with Holidays</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for calendar */
+        .calendar-month {
+            margin: 20px 0;
+        }
+        .calendar-header {
+            background-color: #2196F3;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr); /* 8 columns: week num + 7 days */
+            gap: 2px;
+            background-color: #eee;
+        }
+        .day-header {
+            background-color: #ddd;
+            text-align: center;
+            padding: 5px;
+            font-weight: bold;
+        }
+        .week-number {
+            background-color: #ccc;
+            text-align: center;
+            padding: 5px;
+            font-weight: bold;
+        }
+        .calendar-day {
+            background-color: white;
+            min-height: 60px;
+            padding: 5px;
+            text-align: right;
+            cursor: pointer;
+        }
+        .calendar-day.empty {
+            background-color: #f9f9f9;
+        }
+        .holiday {
+            background-color: #ffeaa7;
+            color: #d63031;
+            font-weight: bold;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding-top: 100px;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 8px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="container mx-auto">
+        <h1 class="text-4xl font-bold text-center mb-8">2024 Philippines Calendar</h1>
+        
+        <!-- Modal for holidays -->
+        <div id="holidayModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h2 id="modalTitle" class="text-2xl font-bold mb-4"></h2>
+                <div id="modalImage" class="mb-4"></div>
+                <p id="modalDescription"></p>
+            </div>
+        </div>
+        
+        <div id="calendar" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <!-- Months will be inserted here via JS -->
+        </div>
+    </div>
+
+    <script>
+        const holidays = {
+            '2024-01-01': {
+                name: 'New Year\'s Day',
+                description: 'New Year\'s Day is the first day of the year in the Philippines, marked by family gatherings, fireworks, and eating round fruits for good luck. It\'s a public holiday celebrating new beginnings and resolutions.',
+                imageSrc: 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/82a36099-8579-4d25-ac15-2d8720cfd674.png',
+                alt: 'Festive Filipino New Year\'s Eve gathering with families around tables filled with round fruits like oranges and grapes, fireworks bursting outside windows, lanterns hanging indoors, symbolizing prosperity and joy in a Filipino home setting at midnight transition to the new year'
+            },
+            '2024-02-25': {
+                name: 'Araw ng Kagitingan',
+                description: 'Araw ng Kagitingan commemorates the 1986 EDSA Revolution, honoring the role of Filipino people in overthrowing dictatorship peacefully. It\'s observed with recognition of heroes like Aquino and Ramos.',
+                imageSrc: 'https://placehold.co/600x400',
+                alt: 'People gathering on a major highway like EDSA in Manila, holding candles and crosses, traffic blocked by crowds in yellow scarves, symbolic of the peaceful revolution with nuns in traditional habits, Filipino flags waving under the night sky'
+            },
+            '2024-03-28': {
+                name: 'Maundy Thursday',
+                description: 'Maundy Thursday marks the Last Supper of Jesus, part of Holy Week in the Philippines. Devotees participate in processions, bathing in holy water, and preparing for Good Friday with penance and reflection.',
+                imageSrc: 'https://placehold.co/600x400',
+                alt: 'Devotional Filipino scene during Holy Week, faithful in black vestments carrying statues of Jesus on ornate carrozas during a procession in a town street, crowds following with candles, religious music playing in a solemn nighttime atmosphere'
+            },
+            '2024-03-29': {
+                name: 'Good Friday',
+                description: 'Good Friday is a national holiday observing the crucifixion of Jesus. In the Philippines, it\'s characterized by religious processions, penitents whipping themselves (Dober Dance), and solemn church services in preparation for Easter.',
+                imageSrc: 'https://placehold.co/600x400',
+                alt: 'Solemn Good Friday procession in a Filipino town, penitents in purple robes with pointed hats dancing barefoot with whips, statues of Christ crowned with thorns on wooden crosses, crowds kneeling in prayer under a cloudy sky'
+            },
+            '2024-03-30': {
+                name: 'Black Saturday',
+                description: 'Black Saturday is the day before Easter, when Christians mourn the death of Jesus. In the Philippines, it\'s observed quietly with church visits, preparation for Easter Vigil, and symbolic fasting.',
+                imageSrc: 'https://placehold.co/600x400',
+                alt: 'Quiet Filipino church scene on Black Saturday evening, families lighting candles at home altars, priests in dark vestments preparing for Easter Vigil, an atmosphere of contemplation with dark hues and soft lighting symbolizing mourning'
+            },
+            '2024-05-01': {
+                name: 'Labor Day',
+                description: 'Labor Day in the Philippines honors workers\' contributions. It includes parades by labor unions, worker recognition, and is often associated with May flowers and the beginning of summer activities.',
+                imageSrc: 'https://placehold.co/600x400',
+                alt: 'Vibrant Labor Day parade in Manila with workers in red shirts, carrying banners for rights and unions, marching down city streets lined with crowds, colorful balloons and flowers celebrating workers\' day in the Philippines'
+            },
+            '2024-06-12': {
+                name: 'Independence Day',
+                description: 'Philippine Independence Day celebrates the proclamation of independence from the United States in 1898. Observed with parades, fireworks, and reflections on national sovereignty.',
+                imageSrc: 'https://placehold.co/600x400',
+                alt: 'Majestic Rizal Park in Manila with a grand parade, Filipino flags everywhere, people in traditional Filipiniana dresses dancing, historical reenactments, fireworks lighting up the evening sky to commemorate independence'
+            },
+            '2024-08-26': {
+                name: 'National Heroes Day',
+                description: 'National Heroes Day honors Filipino heroes from history. Observed on the last Monday of August, it includes ceremonies, visits to heroes\' graves, and educational events.',
+                imageSrc: 'https://placehold.co/600x400',
+                alt: 'Cemetery scene at Heroes\' Hill in Taguig, wreaths laid on tombs, uniformed Filipinos saluting at Rizal\'s grave, crowds paying respects, Philippine flag at half-mast in a solemn atmosphere of national pride'
+            },
+            '2024-11-30': {
+                name: 'Bonifacio Day',
+                description: 'Bonifacio Day commemorates Andrés Bonifacio, founder of the Katipunan, observed on November 30 with reflections on the Philippine Revolution against Spain.',
+                imageSrc: 'https://placehold.co/600x400',
+                alt: 'Historical reenactment in Manila\'s plaza with actors dressed as Katipunan members, flags waving, crowd gathering for speeches honoring Andres Bonifacio, antique houses in background symbolizing revolutionary spirit'
+            },
+            '2024-12-25': {
+                name: 'Christmas Day',
+                description: 'Christmas is a major holiday in the Philippines, known as Simbang Gabi (nine dawn masses) and parol lanterns. Celebrated with family reunions, feasts (Noche Buena), and gift-giving.',
+                imageSrc: 'https://placehold.co/600x400',
+                alt: 'Vibrant Filipino Christmas street scene with giant parol star lanterns hanging from poles, families in houses decorated with belens (nativities), children singing carols, feasting on lechon and ham under starry night sky'
+            },
+            '2024-12-30': {
+                name: 'Rizal Day',
+                description: 'Rizal Day honors national hero José Rizal on his birthdate, observed with wreath-laying at his monument, parades, and educational events emphasizing nationalism and education.',
+                imageSrc: 'https://placehold.co/600x400',
+                alt: 'Grand Rizal Monument in Manila surrounded by crowds laying wreaths, military honor guard saluting, students in parade with Rizal portraits, Philippine flag proudly displayed in daytime ceremony atmosphere'
+            },
+            '2024-04-05': {
+                name: 'Araw ng Kagitingan (Special Holiday for 2024)',
+                description: 'In 2024, a special holiday was declared to ensure two non-working days for the EDSA anniversary, supplementing February 25.',
+                imageSrc: 'https://placehold.co/600x400',
+                alt: 'People in metro Manila taking advantage of holiday with leisure, some at EDSA shrine, families picnicking, Filipinos reflecting on democracy while enjoying break with traditional snacks like puto bumbong and bibingka'
+            }
+        };
+
+        // Function to create the calendar
+        function createCalendar() {
+            const calendar = document.getElementById('calendar');
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const daysInMonth = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]; // 2024 is leap year
+
+            let currentDate = new Date(2024, 0, 1); // Start with Jan 1, 2024 (Monday)
+
+            for (let month = 0; month < 12; month++) {
+                const monthDiv = document.createElement('div');
+                monthDiv.className = 'calendar-month bg-white shadow-lg rounded-lg p-4';
+
+                const header = document.createElement('h2');
+                header.className = 'text-2xl font-bold text-center mb-4';
+                header.textContent = months[month] + ' 2024';
+                monthDiv.appendChild(header);
+
+                const grid = document.createElement('div');
+                grid.className = 'calendar-grid';
+                monthDiv.appendChild(grid);
+
+                // Header for days and week num
+                for (let i = 0; i < 8; i++) {
+                    const cell = document.createElement('div');
+                    if (i === 0) {
+                        cell.className = 'week-number';
+                        cell.textContent = 'Week';
+                    } else {
+                        cell.className = 'day-header';
+                        cell.textContent = days[i-1];
+                    }
+                    grid.appendChild(cell);
+                }
+
+                // Days
+                const startDay = currentDate.getDay(); // 0 = Sunday
+                let weekNum = 1;
+                for (let week = 0; week < 6; week++) { // Max 6 weeks
+                    for (let d = 0; d < 8; d++) {
+                        const cell = document.createElement('div');
+                        if (d === 0) {
+                            cell.className = 'week-number';
+                            if (week < 5) {
+                                cell.textContent = weekNum;
+                            }
+                        } else {
+                            cell.className = 'calendar-day';
+                            const actualDay = (week * 7) + (d - 1) - startDay + 1;
+                            if (actualDay > 0 && actualDay <= daysInMonth[month]) {
+                                cell.textContent = actualDay;
+                                const dateKey = `2024-${String(month+1).padStart(2,'0')}-${String(actualDay).padStart(2,'0')}`;
+                                if (holidays[dateKey]) {
+                                    cell.classList.add('holiday');
+                                    cell.onclick = () => openModal(holidays[dateKey]);
+                                }
+                            } else {
+                                cell.classList.add('empty');
+                            }
+                        }
+                        grid.appendChild(cell);
+                    }
+                    weekNum++;
+                }
+
+                calendar.appendChild(monthDiv);
+
+                // Update to next month
+                currentDate = new Date(2024, month + 1, 1);
+            }
+        }
+
+        function openModal(holiday) {
+            document.getElementById('modalTitle').textContent = holiday.name;
+            document.getElementById('modalDescription').textContent = holiday.description;
+            document.getElementById('modalImage').innerHTML = `<img src="${holiday.imageSrc}" alt="${holiday.alt}" class="w-full h-64 object-cover rounded">`;
+            document.getElementById('holidayModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('holidayModal').style.display = 'none';
+        }
+
+        // Initialize
+        createCalendar();
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target === document.getElementById('holidayModal')) {
+                closeModal();
+            }
+        };
+    </script>
+</body>
+</html>
+</content>
+</create_file>
